@@ -98,6 +98,8 @@ func process(image *images.Image, schema *jsonschema.Schema) {
 	result := schema.Validate(image.Properties)
 	if !result.Valid {
 		fmt.Println("error: [1;31mImage does not match Unikorn Schema V2[0m")
+		props := result.Errors["properties"]
+		fmt.Printf("The following properties are missing: %s\nSee the unikorn spec for further information https://github.com/unikorn-cloud/specifications/blob/main/specifications/providers/openstack/flavors_and_images.md\n", props.Params[props.Keyword])
 		return
 	}
 
