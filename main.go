@@ -97,9 +97,26 @@ func process(image *images.Image, schema *jsonschema.Schema) {
 
 	result := schema.Validate(image.Properties)
 	if !result.Valid {
-		fmt.Println("error: [1;31mImage does not match Unikorn Schema V2[0m")
-		props := result.Errors["properties"]
-		fmt.Printf("The following properties are missing: %s\nSee the unikorn spec for further information https://github.com/unikorn-cloud/specifications/blob/main/specifications/providers/openstack/flavors_and_images.md\n", props.Params[props.Keyword])
+		fmt.Println("error:")
+		fmt.Println("  message: [1;31mImage does not match Unikorn Schema V2[0m")
+		fmt.Println("  documentation: See https://github.com/unikorn-cloud/specifications/blob/main/specifications/providers/openstack/flavors_and_images.md")
+		fmt.Println("  detail:")
+
+		for errorType := range maps.Keys(result.Errors) {
+			evaluationError := result.Errors[errorType]
+
+			switch errorType {
+			case "properties":
+				fmt.Println("  - message: Object properties failed validation or do not exist")
+				// It may either be pluralized or not...
+				for _, k := range []string{"property", "properties"} {
+					if v, ok := evaluationError.Params[k]; ok {
+						fmt.Println("    properties:", v)
+					}
+				}
+			}
+		}
+
 		return
 	}
 
